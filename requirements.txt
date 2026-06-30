@@ -1,0 +1,28 @@
+# --- Core ---
+Django==4.2.11
+djangorestframework==3.15.1
+djangorestframework-simplejwt==5.3.1
+channels==4.1.0
+channels-redis==4.2.0
+daphne==4.1.0
+
+# --- Async tasks ---
+celery==5.3.6
+redis==5.0.3
+
+# --- Database ---
+psycopg2-binary==2.9.9
+
+# --- API quality of life ---
+drf-spectacular==0.27.1
+django-filter==24.1
+django-cors-headers==4.3.1
+
+# --- Config / environment ---
+python-decouple==3.8
+
+# --- Production server ---
+gunicorn==21.2.0
+
+# --- Observability ---
+sentry-sdk==1.43.0
