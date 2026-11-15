@@ -12,3 +12,4 @@ htmlcov/
 staticfiles/
 *.md
 .github/
+artifacts/

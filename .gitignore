@@ -39,4 +39,6 @@ Thumbs.db
 docker-compose.override.yml
 
 # Python cache
-.mypy_cache/
+.mypy_cache/artifacts/
+
+/artifacts/

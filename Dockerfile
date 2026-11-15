@@ -1,3 +1,4 @@
+
 # ---------- Builder ----------
 FROM python:3.12-slim AS builder
 
@@ -11,9 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
 RUN python -m venv /opt/venv
-
 ENV PATH="/opt/venv/bin:$PATH"
 
 COPY requirements.txt .
@@ -21,8 +20,21 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+
+# ---------- Test ----------
+FROM builder AS test
+
+COPY requirements-dev.txt .
+
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+COPY . .
+
+CMD ["python", "-m", "pytest", "--ds=config.settings.test"]
+
+
 # ---------- Runtime ----------
-FROM python:3.12-slim
+FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -34,13 +46,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the virtual environment
 COPY --from=builder /opt/venv /opt/venv
-
-# Copy project files
 COPY . .
 
-# Create non-root user
 RUN useradd --create-home appuser && \
     chown -R appuser:appuser /app
 
@@ -49,6 +57,6 @@ USER appuser
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz/')" || exit 1
 
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]

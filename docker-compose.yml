@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   postgres:
@@ -8,7 +7,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +19,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -59,6 +58,22 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    command: python -m pytest --ds=config.settings.test
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DB_HOST: postgres
+    depends_on:
+      postgres:
         condition: service_healthy
     volumes:
       - .:/app
